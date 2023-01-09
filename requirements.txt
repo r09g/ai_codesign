@@ -1,0 +1,6 @@
+numpy
+networkx
+sympy
+matplotlib
+onnx
+pandas==1.5.0
