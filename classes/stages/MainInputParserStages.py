@@ -10,26 +10,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def parse_accelerator_from_path(accelerator_path, compute_cost):
+def parse_accelerator_from_path(accelerator_path):
     """
     Parse the input accelerator residing in accelerator_path.
     """
     global module
     module = importlib.import_module(accelerator_path)
     accelerator = module.accelerator
-    for core in accelerator.cores:
-        core.operational_array.unit.cost = compute_cost
     logger.info(f"Parsed accelerator with cores {[core.id for core in accelerator.cores]}.")
     return accelerator
 
 class AcceleratorParserStage(Stage):
-    def __init__(self, list_of_callables, *, accelerator_path, compute_cost, **kwargs):
+    def __init__(self, list_of_callables, *, accelerator_path, **kwargs):
         super().__init__(list_of_callables, **kwargs)
         self.accelerator_path = accelerator_path
-        self.compute_cost = compute_cost
 
     def run(self):
-        accelerator = parse_accelerator_from_path(self.accelerator_path, self.compute_cost)
+        accelerator = parse_accelerator_from_path(self.accelerator_path)
         sub_stage = self.list_of_callables[0](self.list_of_callables[1:], accelerator=accelerator, **self.kwargs)
         for cme, extra_info in sub_stage.run():
             yield cme, extra_info
@@ -70,15 +67,14 @@ class WorkloadAndAcceleratorParserStage(Stage):
     """
     Convenience class to parse both the workload and accelerator
     """
-    def __init__(self, list_of_callables, *, workload_path, accelerator_path, compute_cost, **kwargs):
+    def __init__(self, list_of_callables, *, workload_path, accelerator_path, **kwargs):
         super().__init__(list_of_callables, **kwargs)
         self.workload_path = workload_path
         self.accelerator_path = accelerator_path
-        self.compute_cost = compute_cost
 
     def run(self):
         workload = parse_workload_from_path(self.workload_path)
         accelerator = parse_accelerator_from_path(self.accelerator_path)
-        sub_stage = self.list_of_callables[0](self.list_of_callables[1:], accelerator=accelerator, workload=workload, compute_cost=self.compute_cost, **self.kwargs)
+        sub_stage = self.list_of_callables[0](self.list_of_callables[1:], accelerator=accelerator, workload=workload, **self.kwargs)
         for cme, extra_info in sub_stage.run():
             yield cme, extra_info
