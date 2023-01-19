@@ -6,9 +6,9 @@ mem_hierarchies = {'TPU_like': [[[1,1,0],('I2'),{(0, 0)}],
                                 [[1,1,0],('I1', 'O'),'all'],
                                 [[0,0,1],('I1', 'I2', 'O'),'all']]}
 
-pe_array_sizes = [4,16,64,256,1024]
-nodes = ['SRAM65','SRAM28','SRAM16','SRAM5','RRAM130','MRAM28']
-compute_costs = [1,0.1856,0.0606,0.0059,4,0.1856]  # arbitrary for now
+pe_array_sizes = [4,16]
+nodes = ['SRAM65']
+compute_costs = {'SRAM65': 1}  # arbitrary for now
 
 # Initialize the logger
 import logging as _logging
@@ -24,6 +24,8 @@ _logging.basicConfig(level=_logging_level,
 mainstage = MainStage([  # Initializes the MainStage as entry point
     ONNXModelParserStage,  # Parses the ONNX Model into the workload
     AcceleratorParserStage,  # Parses the accelerator
+    SimpleSaveStage,
+    MinimalEnergyStage,
     HWDSEStageLUT_v1,  # Example stage that varies the rf energy scaling
     SumStage,  # Adds all CME of all the layers together, getting the total energy, latency, ...
     WorkloadStage,  # Iterates through the different layers in the workload

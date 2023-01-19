@@ -4,7 +4,7 @@ from typing import Generator, Callable, List, Tuple, Any
 from classes.stages.Stage import Stage
 from classes.cost_model.cost_model import CostModelEvaluation
 logger = logging.getLogger(__name__)
-
+        
 
 class MinimalEnergyStage(Stage):
     """
@@ -17,6 +17,7 @@ class MinimalEnergyStage(Stage):
         """
         super().__init__(list_of_callables, **kwargs)
         self.best_cme = None
+        self.best_info = None
         # Visualization stuff
         self.energies = []
         self.keep_others = reduce_minimal_keep_others
@@ -34,6 +35,7 @@ class MinimalEnergyStage(Stage):
             self.energies.append(cme.energy_total)
             if self.best_cme is None or cme.energy_total < self.best_cme.energy_total:
                 self.best_cme = cme
+                self.best_info = extra_info
             if self.keep_others:
                 other_cmes.append((cme, extra_info))
         yield (self.best_cme, other_cmes)
@@ -50,6 +52,7 @@ class MinimalLatencyStage(Stage):
         """
         super().__init__(list_of_callables, **kwargs)
         self.best_cme = None
+        self.best_info = None
         self.keep_others = reduce_minimal_keep_others
 
 
@@ -64,6 +67,7 @@ class MinimalLatencyStage(Stage):
         for cme, extra_info in substage.run():
             if self.best_cme is None or cme.latency_total2 < self.best_cme.latency_total2:
                 self.best_cme = cme
+                self.best_info = extra_info
             if self.keep_others:
                 other_cmes.append((cme, extra_info))
         yield (self.best_cme, other_cmes)

@@ -82,15 +82,17 @@ class SimpleSaveStage(Stage):
         for id, (cme, extra_info) in enumerate(substage.run()):
             cme: CostModelEvaluation
             filename = self.dump_filename_pattern.format(datetime=datetime.now().isoformat().replace(":", "-"))
-            self.save_to_json(cme, filename=filename)
+            self.save_to_json(cme, extra_info, filename=filename)
             logger.info(f"Saved CostModelEvaluation with energy {cme.energy_total:.3e} and latency {cme.latency_total2:.3e} to {filename}")
             yield cme, extra_info
 
 
-    def save_to_json(self, obj, filename):
+    def save_to_json(self, obj, extra_info, filename):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'w') as fp:
             json.dump(obj, fp, default=self.complexHandler, indent=4)
+            print("\n\n", file=fp)
+            print(extra_info, file=fp)
 
 
     @staticmethod

@@ -23,7 +23,7 @@ def init_mem_cost_lut(path):
     df = pd.read_csv(path)
     for row_idx in range(df.shape[0]):
         # all columns preceding last 2 columns are memory configurations, last 2 columns are energy and latency
-        lut[df.iloc[row_idx,0:-2]] = df.iloc[row_idx,-2:]
+        lut[tuple(df.iloc[row_idx,0:-2])] = df.iloc[row_idx,-2:]
     return lut
 
 class HWDSEStageLUT_v1(Stage):
@@ -44,45 +44,53 @@ class HWDSEStageLUT_v1(Stage):
         self.compute_costs = compute_costs  # dict, maps node to compute cost
         
         # initialize memory cost lut based on Cacti data
-        self.mem_cost_lut = init_mem_cost_lut('mem_cost_lut.csv')  # dict type     
+        self.mem_cost_lut = init_mem_cost_lut('./inputs/mem_cost_lut.csv')  # dict type     
 
 
     def run(self):
         ###########################################################
         # Tune this for search space
-        stage_size_factors = [2**x for x in range(4,29)]
-        bw_size_factors = [2**x for x in range(4,10)]
+        stage_size_factors = [2**x for x in range(6,12)]
+        bw_size_factors = [2**x for x in range(6,7)]
         ###########################################################
         for node in self.nodes:   
             for mh in self.mem_hierarchies:
                 # generate combinations of stage sizes
                 # if 4 stages with possible sizes [16,32,64] then combinations are:
                 # [16,16,16,16], [16,16,16,32], [16,16,16,64], ...
-                for pe_array in self.pe_array:
+                for pe_array in self.pe_array_sizes:
                     for stage_size_array in itertools.combinations_with_replacement(stage_size_factors, len(self.mem_hierarchies[mh])):
                         for bw_size_array in itertools.combinations_with_replacement(bw_size_factors, len(self.mem_hierarchies[mh])):
-                            updated_accelerator = self.update_hw(mh, stage_size_array, bw_size_array, pe_array, node)
+                            updated_accelerator = self.update_hw(self.mem_hierarchies[mh], stage_size_array, bw_size_array, pe_array, node)
                             # check if memory config is valid, skip invalid ones
                             if(updated_accelerator is None):
                                 pass
                             kwargs = pickle_deepcopy(self.kwargs)
                             kwargs["accelerator"] = updated_accelerator
                             sub_stage = self.list_of_callables[0](self.list_of_callables[1:], **kwargs)
-                            for cme, extra_info in sub_stage.run():
-                                yield cme, extra_info
+                            # configuration might be invalid
+                            try:
+                                for cme, extra_info in sub_stage.run():
+                                    cfg = [mh, pe_array, stage_size_array, bw_size_array]
+                                    yield cme, cfg
+                            except:
+                                # print("Invalid HW Configuration")
+                                pass  # in case of error, move on to next configuration
+                                
+                            
         
 
-    def update_memory(self, mh, stage_size_array, bw_size_array, pe_array, node):
+    def update_hw(self, mh, stage_size_array, bw_size_array, pe_array, node):
         accelerator_copy = pickle_deepcopy(self.accelerator)
         memory_instances = []
         stage_num = 0
         for stage in mh:
-            cost_lut = self.get_cost_lut(node=node,
-                                         size=stage_size_array[stage_num],
-                                         bw=bw_size_array[stage_num],
-                                         r_port=stage[0][0],
-                                         w_port=stage[0][1],
-                                         rw_port=stage[0][2])  # get energy + latency from LUT
+            cost_lut = self.get_mem_cost_lut(node=node,
+                                             size=stage_size_array[stage_num],
+                                             bw=bw_size_array[stage_num],
+                                             r_port=stage[0][0],
+                                             w_port=stage[0][1],
+                                             rw_port=stage[0][2])  # get energy + latency from LUT
             # Invalid memory configuration, skip 
             if(cost_lut is None):
                 return None
@@ -128,11 +136,14 @@ class HWDSEStageLUT_v1(Stage):
 
     def get_mem_cost_lut(self, node, size, bw, r_port, w_port, rw_port):
         # shape should be (1, 2)
-        key = [node,size,bw,r_port,w_port,rw_port]
+        key = tuple([node,size,bw,r_port,w_port,rw_port])
         try:
             result = self.mem_cost_lut[key]
         except:
             result = None
+        else:
+            # print("Memory HW Found")
+            pass
         return result
         
 
