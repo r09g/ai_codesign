@@ -25,11 +25,12 @@ mainstage = MainStage([  # Initializes the MainStage as entry point
     ONNXModelParserStage,  # Parses the ONNX Model into the workload
     AcceleratorParserStage,  # Parses the accelerator
     SimpleSaveStage,
-    MinimalEnergyStage,
+    # MinimalEnergyStage,
     HWDSEStageLUT_v1,  # Example stage that varies the rf energy scaling
     SumStage,  # Adds all CME of all the layers together, getting the total energy, latency, ...
     WorkloadStage,  # Iterates through the different layers in the workload
-    SpatialMappingConversionStage,  # Generates multiple spatial mappings (SM)
+    MinimalEnergyStage,
+    SpatialMappingGeneratorStage,  # Generates multiple spatial mappings (SM)
     MinimalEnergyStage,  # Reduces all CMEs, returning minimal latency one
     LomaStage,  # Generates multiple temporal mappings (TM)
     CostModelStage  # Evaluates generated SM and TM through cost model
