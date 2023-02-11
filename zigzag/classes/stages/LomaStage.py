@@ -30,11 +30,15 @@ class LomaStage(Stage):
                                  **self.kwargs)
 
         for tm in self.engine.run():
+            print("===========================")
             kwargs = self.kwargs.copy()
             kwargs['accelerator'] = self.accelerator
             kwargs['layer'] = self.layer
             kwargs['spatial_mapping'] = self.spatial_mapping
             kwargs['temporal_mapping'] = tm
             sub_stage = self.list_of_callables[0](self.list_of_callables[1:], **kwargs)
-            for cme, extra_info in sub_stage.run():
-                yield cme, (tm, extra_info)
+            try:
+                for cme, extra_info in sub_stage.run():
+                    yield cme, (tm, extra_info)
+            except:
+                continue

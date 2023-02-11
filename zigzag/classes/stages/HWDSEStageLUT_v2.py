@@ -49,8 +49,8 @@ class HWDSEStageLUT_v2(Stage):
     def run(self):
         ###########################################################
         # Tune this for search space
-        stage_size_factors = [2**x for x in range(6,12)]
-        bw_size_factors = [2**x for x in range(6,7)]
+        stage_size_factors = [8,16,128*8,131072*8*16]
+        bw_size_factors = [64]
         ###########################################################
         for node in self.nodes:   
             for mh in self.mem_hierarchies:
@@ -65,18 +65,19 @@ class HWDSEStageLUT_v2(Stage):
                             updated_accelerator = self.update_hw(self.mem_hierarchies[mh], stage_size_array, bw_size_array, pe_array, node)
                             # check if memory config is valid, skip invalid ones
                             if(updated_accelerator is None):
-                                pass
+                                continue
                             kwargs = pickle_deepcopy(self.kwargs)
                             kwargs["accelerator"] = updated_accelerator
                             sub_stage = self.list_of_callables[0](self.list_of_callables[1:], **kwargs)
                             # configuration might be invalid
                             try:
                                 for cme, extra_info in sub_stage.run():
+                                    print("> SUCCEEDED")
                                     cfg = [mh, pe_array, stage_size_array, bw_size_array]
                                     yield cme, cfg
                             except:
-                                # print("Invalid HW Configuration")
-                                pass  # in case of error, move on to next configuration
+                                print("> FAILED")
+                                continue  # in case of error, move on to next configuration
                                 
 
     def update_hw(self, mh, stage_size_array, bw_size_array, pe_array, node):
@@ -120,6 +121,7 @@ class HWDSEStageLUT_v2(Stage):
         dimensions = {}
         for i in range(len(mh[-1])):
             dimensions['D' + str(i+1)] = pe_array * mh[-1][i]
+        print(dimensions)
         multiplier = Multiplier(multiplier_input_precision, multiplier_energy, multiplier_area)
         multiplier_array_inst = MultiplierArray(multiplier, dimensions)
         # memory block

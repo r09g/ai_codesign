@@ -37,14 +37,12 @@ pkl_name = f'{experiment_id}-saved_list_of_cmes'
 mainstage = MainStage([  # Initializes the MainStage as entry point
     ONNXModelParserStage,  # Parses the ONNX Model into the workload
     AcceleratorParserStage,  # Parses the accelerator
-    SimpleSaveStage,
-    # MinimalEnergyStage,
-    HWDSEStageLUT_v2,  # Example stage that varies the rf energy scaling
-    SumStage,  # Adds all CME of all the layers together, getting the total energy, latency, ...
+    HWDSEStageLUT_v2,
+    SimpleSaveStage,  # Saves all received CMEs information to a json
+    SumStage,
     WorkloadStage,  # Iterates through the different layers in the workload
     MinimalEnergyStage,
     SpatialMappingGeneratorStage,  # Generates multiple spatial mappings (SM)
-    MinimalEnergyStage,  # Reduces all CMEs, returning minimal latency one
     LomaStage,  # Generates multiple temporal mappings (TM)
     CostModelStage  # Evaluates generated SM and TM through cost model
 ],
@@ -53,7 +51,7 @@ mainstage = MainStage([  # Initializes the MainStage as entry point
     mapping=args_mapping,  # required by ONNXModelParserStage
     dump_filename_pattern=f"outputs/{experiment_id}-layer_?.json",  # output file save pattern
     loma_lpf_limit=6,  # required by LomaStage
-    loma_show_progress_bar=True,  # shows a progress bar while iterating over temporal mappings
+    loma_show_progress_bar=False,  # shows a progress bar while iterating over temporal mappings
     mem_hierarchies=mem_hierarchies,
     pe_array_factors=pe_array_factors,
     nodes=nodes,

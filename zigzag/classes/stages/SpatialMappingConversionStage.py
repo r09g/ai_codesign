@@ -55,9 +55,14 @@ class SpatialMappingConversionStage(Stage):
         kwargs['accelerator'] = self.accelerator
         kwargs['layer'] = self.layer
 
-        sub_stage = self.list_of_callables[0](self.list_of_callables[1:], **kwargs)
-        for cme, extra_info in sub_stage.run():
-            yield cme, extra_info
+        try:
+            sub_stage = self.list_of_callables[0](self.list_of_callables[1:], **kwargs)
+            for cme, extra_info in sub_stage.run():
+                yield cme, extra_info
+        except:
+            # print("Error below Spatial Mapping Stage")
+            pass
+            
 
     def convert_user_spatial_mapping(self, user_spatial_mapping):
         """
