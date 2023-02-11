@@ -10,6 +10,7 @@ A complete list of all onnx operators can be found `here <https://github.com/onn
 
 Following operators are supported by ZigZag and will automatically be parsed into ``LayerNode`` objects when using your onnx model within the framework:
 
+* `Conv <https://github.com/onnx/onnx/blob/main/docs/Operators.md#Conv>`_
 * `QLinearConv <https://github.com/onnx/onnx/blob/main/docs/Operators.md#QLinearConv>`_
 * `MatMul <https://github.com/onnx/onnx/blob/main/docs/Operators.md#MatMul>`_
 
@@ -24,8 +25,8 @@ If your onnx model is rather large, and you want to avoid having it inside of yo
 
     import onnx
     # onnx_model is an in-memory ModelProto
-    onnx_model = ...
-    onnx.save_model(onnx_model, 'path/to/save/the/model.onnx', save_as_external_data=True, all_tensors_to_one_file=True, location='filename', size_threshold=1024, convert_attribute=False)
+    model = onnx.load('my_model_with_internal_data.onnx')
+    onnx.save_model(model, 'path/to/save/the/model.onnx', save_as_external_data=True, all_tensors_to_one_file=True, location='external_data_filename', size_threshold=1024, convert_attribute=False)
     # Then the onnx_model has converted raw data as external data and saved to specific directory
 
 Inferring an onnx model's shapes
