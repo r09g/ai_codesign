@@ -1,4 +1,6 @@
 import logging
+import pandas as pd
+from datetime import datetime
 
 from typing import Generator, Callable, List, Tuple, Any
 from zigzag.classes.stages.Stage import Stage
@@ -144,3 +146,36 @@ class ListifyStage(Stage):
         for cme, extra_info in substage.run():
             self.list.append((cme, extra_info))
         yield self.list, None
+        
+
+class csvStage(Stage):
+    """Class saves to csv."""
+    def __init__(self, list_of_callables, **kwargs):
+        """
+        Initialize the compare stage.
+        """
+        super().__init__(list_of_callables, **kwargs)
+        self.list = []
+
+
+    def run(self) -> Generator[Tuple[CostModelEvaluation, Any], None, None]:
+        """
+        write cmes to csv.
+        """
+        substage = self.list_of_callables[0](self.list_of_callables[1:], **self.kwargs)
+         
+        rows_list = []
+        for cme, extra_info in substage.run():
+            row = {'energy': cme.energy_total,
+                   'latency': cme.latency_total2,
+                   'hw': cme.cfg}
+            rows_list.append(row)
+            # put this here since this each iteration takes significant time
+            # in case of error there would still be some data saved
+            df = pd.DataFrame(rows_list)
+            str_datetime = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+            print("Updating CSV ...")
+            df.to_csv('./outputs/cme_list-' + str_datetime + '.csv')
+            self.list.append((cme, extra_info))
+        yield self.list, None
+        

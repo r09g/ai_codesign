@@ -184,6 +184,8 @@ class CostModelEvaluation:
         self.mem_sharing_list = accelerator.get_core(self.core_id).get_memory_sharing_list()
         self.layer_op_to_mem_op = layer.memory_operand_links
         self.mem_op_to_layer_op = dict([(value, key) for key, value in self.layer_op_to_mem_op.items()])
+        
+        self.cfg = None
 
         ''' generate the integer spatial mapping from fractional spatial mapping (due to greedy mapping support).
         Later the fractional one is used for calculating energy, and the integer one is used for calculating latency'''

@@ -60,7 +60,8 @@ class SpatialMappingConversionStage(Stage):
             for cme, extra_info in sub_stage.run():
                 yield cme, extra_info
         except:
-            # print("Error below Spatial Mapping Stage")
+            # Loma engine failed to find valid loop ordering for given arch
+            # arch is probably invalid
             pass
             
 

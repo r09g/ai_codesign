@@ -3,13 +3,59 @@ import argparse
 import re
 
 # Get the onnx model, the mapping and accelerator arguments
-mem_hierarchies = {'TPU_like': [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0)}],
-                                [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1)}],
-                                [[1,1,0],('I1', 'O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},{'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
-                                [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
-                                (1,1)]}
+mem_hierarchies = {'ascend_like': 
+                   [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
+                    [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1, 0, 0)}],
+                    [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                    [[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                    [[1,1,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
+                    [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                    [[1,1,0],('I1', 'O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},{'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
+                    [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
+                    (1,1,1/8,1/8)],
+                   'edge_tpu_like': 
+                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
+                     [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1, 0, 0)}],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                     [[1,1,0],('I1', 'O'),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},{'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
+                     [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
+                     (1/2,1/2,1/4,1/4)],
+                   'eyeriss_like': 
+                    [[[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),set()],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),set()],
+                     [[1,1,1],('O',),({'fh': 'rw_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'rw_port_1'},),set()],
+                     [[0,0,2],('O',),({'fh': 'rw_port_1', 'tl': 'rw_port_2', 'fl': 'rw_port_2', 'th': 'rw_port_1'},),'all'],
+                     [[1,1,0],('I2'),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                     [[0,0,2],('I1', 'O'),({'fh': 'rw_port_1', 'tl': 'rw_port_2', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_2', 'fl': 'rw_port_2', 'th': 'rw_port_1'},),'all'],
+                     [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
+                     (14/16,12/16)],
+                   'meta_prototype':
+                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
+                     [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1, 0, 0)}],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                     [[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                     [[1,1,0],('I1', 'O'),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},{'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
+                     [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
+                     (1,1/8,1/4,1/4)],
+                   'tesla_npu_like':
+                     [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 1, 0), (0, 0, 1)}],
+                      [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 0, 0)}],
+                      [[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
+                      [[1,1,0],('I1', 'O'),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},{'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
+                      [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
+                      (1,1/4,1/8)],
+                   'tpu_like': 
+                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0)}],
+                     [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1)}],
+                     [[1,1,0],('I1', 'O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},{'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
+                     [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
+                     (1,1)],
+                   }
 
-pe_array_factors = [32]
+pe_array_factors = [16,32,64]
 nodes = ['SRAM65']
 compute_costs = {'SRAM65': 1}  # arbitrary for now
 
@@ -37,8 +83,8 @@ pkl_name = f'{experiment_id}-saved_list_of_cmes'
 mainstage = MainStage([  # Initializes the MainStage as entry point
     ONNXModelParserStage,  # Parses the ONNX Model into the workload
     AcceleratorParserStage,  # Parses the accelerator
+    csvStage,
     HWDSEStageLUT_v2,
-    SimpleSaveStage,  # Saves all received CMEs information to a json
     SumStage,
     WorkloadStage,  # Iterates through the different layers in the workload
     MinimalEnergyStage,
