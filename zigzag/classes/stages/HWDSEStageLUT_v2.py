@@ -58,13 +58,13 @@ class HWDSEStageLUT_v2(Stage):
                 # [16,16,16,16], [16,16,16,32], [16,16,16,64], ..., [16,16,32,16], ..., [64,64,64,64]
                 for pe_array in self.pe_array_factors:
                     # The length subtractions are hardcoded since the PE size information is embedded in the memory hierarchy
-                    # for stage_size_array in itertools.combinations_with_replacement(stage_size_factors, len(self.mem_hierarchies[mh])-2):
-                    for stage_size_array in [[128*8, 16, 131072*8*16]]:
+                    for stage_size_array in itertools.combinations_with_replacement(stage_size_factors, len(self.mem_hierarchies[mh])-2):
+                    # for stage_size_array in [[128*8, 16, 131072*8*16]]:
                         # manually add memory hierarchy information for DRAM
                         stage_size_array = list(stage_size_array)
                         stage_size_array.append(10000000000)
-                        # for bw_size_array in itertools.combinations_with_replacement(bw_size_factors, len(self.mem_hierarchies[mh])-2):
-                        for bw_size_array in [[8, 16, 128*16]]:
+                        for bw_size_array in itertools.combinations_with_replacement(bw_size_factors, len(self.mem_hierarchies[mh])-2):
+                        # for bw_size_array in [[8, 16, 128*16]]:
                             bw_size_array = list(bw_size_array)
                             # manually add memory hierarchy information for DRAM
                             bw_size_array.append(64)
@@ -81,15 +81,16 @@ class HWDSEStageLUT_v2(Stage):
                             # configuration might be invalid
                             try:
                                 for cme, extra_info in sub_stage.run():
-                                    print("\n> Candidate Configuration: " + str(cfg))
-                                    print("> SUCCEEDED")
                                     cme.cfg = cfg
                                     yield cme, extra_info
                                     continue
                             except:
-                                logger.info(f"> FAILED")
+                                # logger.info("> FAILED")
                                 continue  # in case of error, move on to next configuration
-                                
+                            else:
+                                print("\n> Candidate Configuration: " + str(cfg))
+                                print("> SUCCEEDED")
+                                continue
 
     def update_hw(self, mh, stage_size_array, bw_size_array, pe_array, node):
         """
@@ -110,7 +111,7 @@ class HWDSEStageLUT_v2(Stage):
                                              rw_port=stage[0][2])  # get energy + latency from LUT
             # Invalid memory configuration, skip 
             if(cost_lut is None):
-                logger.info(f"Invalid LUT Memory Configuration")
+                # logger.info("Invalid LUT Memory Configuration")
                 return None
             # Create new memory instances
             memory_instances.append(MemoryInstance(
@@ -123,7 +124,7 @@ class HWDSEStageLUT_v2(Stage):
                 r_port=stage[0][0], w_port=stage[0][1], rw_port=stage[0][2], 
                 latency=cost_lut[1]))
             stage_num += 1
-        logger.info(f"Valid HW configuration")
+        # logger.info("Valid HW configuration")
         # create accelerator with updated params
         # compute block
         multiplier_input_precision = [8, 8]
