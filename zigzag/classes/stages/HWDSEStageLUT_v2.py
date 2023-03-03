@@ -48,8 +48,10 @@ class HWDSEStageLUT_v2(Stage):
     def run(self):
         ###########################################################
         # Tune this for search space
-        stage_size_factors = [2**x for x in [3,4,5,7,9,10,13,16,18,19,21,23,24]]
-        bw_size_factors = [2**x for x in [3,4,5,6,7,8,9,10,11,12]]
+        stage_size_factors = [2**x for x in [3,4,6,10,18,24]]
+        bw_size_factors = [2**x for x in [3,4,5,6,8,10,12]]
+        # stage_size_factors = [2**x for x in [3,4,5,7,9,10,13,16,18,19,21,23,24]]
+        # bw_size_factors = [2**x for x in [3,4,5,6,7,8,9,10,11,12]]
         ###########################################################
         for node in self.nodes:   
             for mh in self.mem_hierarchies:
