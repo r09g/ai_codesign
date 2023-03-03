@@ -165,17 +165,20 @@ class csvStage(Stage):
         substage = self.list_of_callables[0](self.list_of_callables[1:], **self.kwargs)
          
         rows_list = []
+        count = 0
         for cme, extra_info in substage.run():
             row = {'energy': cme.energy_total,
                    'latency': cme.latency_total2,
                    'hw': cme.cfg}
+            count += 1
             rows_list.append(row)
-            # put this here since this each iteration takes significant time
-            # in case of error there would still be some data saved
-            df = pd.DataFrame(rows_list)
-            str_datetime = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-            print("Updating CSV ...")
-            df.to_csv('./outputs/cme_list-' + str(cme.cfg[0]) + '-' + str_datetime + '.csv')
+            if (count % 10 == 0):
+                # put this here since this each iteration takes significant time
+                # in case of error there would still be some data saved
+                df = pd.DataFrame(rows_list)
+                str_datetime = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+                print("Updating CSV ...")
+                df.to_csv('./outputs/cme_list-' + str(cme.cfg[0]) + '-' + str_datetime + '.csv')
             self.list.append((cme, extra_info))
         yield self.list, None
         
