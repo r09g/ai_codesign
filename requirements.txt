@@ -1,8 +1,8 @@
-numpy
-networkx
-sympy
-matplotlib
-onnx
-tqdm
-multiprocessing_on_dill
-pandas
+numpy==1.24.1
+networkx==2.8.8
+sympy==1.11.1
+matplotlib==3.6.2
+onnx==1.13.0
+tqdm==4.64.1
+multiprocessing_on_dill==3.5.0a4
+pandas==1.5.0

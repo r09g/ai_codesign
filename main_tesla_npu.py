@@ -19,11 +19,12 @@ compute_costs = {'SRAM65': 1}  # arbitrary for now
 
 # Initialize the logger
 import logging as _logging
-_logging_level = _logging.INFO
+_logging_level = _logging.CRITICAL
 _logging_format = '%(asctime)s - %(funcName)s +%(lineno)s - %(levelname)s - %(message)s'
 _logging.basicConfig(level=_logging_level,
                      format=_logging_format)
 
+# Accelerator and mapping will not matter as they will be swapped in HWDSE Stage
 args_accelerator = "zigzag.inputs.examples.hardware.TPU_like"
 args_workload = "zigzag/inputs/examples/workload/alexnet.onnx"
 args_mapping = "zigzag.inputs.examples.mapping.tpu_like"
