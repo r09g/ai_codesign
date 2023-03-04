@@ -180,5 +180,11 @@ class csvStage(Stage):
                 print("Updating CSV ...")
                 df.to_csv('./outputs/cme_list-' + str(cme.cfg[0]) + '-' + str_datetime + '.csv')
             self.list.append((cme, extra_info))
+        # put this here since this each iteration takes significant time
+        # in case of error there would still be some data saved
+        df = pd.DataFrame(rows_list)
+        str_datetime = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+        print("Updating CSV ...")
+        df.to_csv('./outputs/cme_list-' + str(cme.cfg[0]) + '-' + str_datetime + '.csv')
         yield self.list, None
         

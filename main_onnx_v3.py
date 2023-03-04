@@ -4,7 +4,8 @@ import re
 
 # Get the onnx model, the mapping and accelerator arguments
 mem_hierarchies = {'ascend_like': 
-                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
+                    [[2,5],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
                      [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1, 0, 0)}],
                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
                      [[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
@@ -14,14 +15,16 @@ mem_hierarchies = {'ascend_like':
                      [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
                      (1,1,1/8,1/8)],
                    'edge_tpu_like': 
-                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
+                    [[2,2],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
                      [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1, 0, 0)}],
                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
                      [[1,1,0],('I1', 'O'),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},{'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
                      [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
                      (1/2,1/2,1/4,1/4)],
                    'eyeriss_like': 
-                    [[[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),set()],
+                    [[3,3],
+                     [[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),set()],
                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),set()],
                      [[1,1,1],('O',),({'fh': 'rw_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'rw_port_1'},),set()],
                      [[0,0,2],('O',),({'fh': 'rw_port_1', 'tl': 'rw_port_2', 'fl': 'rw_port_2', 'th': 'rw_port_1'},),'all'],
@@ -30,7 +33,8 @@ mem_hierarchies = {'ascend_like':
                      [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
                      (14/16,12/16)],
                    'meta_prototype':
-                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
+                    [[2,4],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
                      [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1, 0, 0)}],
                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
@@ -39,7 +43,8 @@ mem_hierarchies = {'ascend_like':
                      [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
                      (1,1/8,1/4,1/4)],
                    'tesla_npu_like':
-                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 1, 0), (0, 0, 1)}],
+                    [[2,4],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 1, 0), (0, 0, 1)}],
                      [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 0, 0)}],
                      [[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
@@ -48,7 +53,8 @@ mem_hierarchies = {'ascend_like':
                      [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],
                      (1,1/4,1/8)],
                    'tpu_like': 
-                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0)}],
+                    [[2,1],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0)}],
                      [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1)}],
                      [[1,1,0],('I1', 'O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},{'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_1', 'th': 'r_port_1'},),'all'],
                      [[0,0,1],('I1', 'I2', 'O',),({'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': None, 'th': None},{'fh': 'rw_port_1', 'tl': 'rw_port_1', 'fl': 'rw_port_1', 'th': 'rw_port_1'},),'all'],

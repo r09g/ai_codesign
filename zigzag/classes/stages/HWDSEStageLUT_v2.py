@@ -48,51 +48,48 @@ class HWDSEStageLUT_v2(Stage):
     def run(self):
         ###########################################################
         # Tune this for search space
-        stage_size_factors = [2**x for x in [3,4,6,10,18,24]]
-        bw_size_factors = [2**x for x in [3,4,5,6,8,10,12]]
+        stage_size_factors = [[8,16],[8192*8,32768*8*8,131072*8*8]]
+        bw_size_factors = [[8,16],[64*8,256*8,512*8]]
         # stage_size_factors = [2**x for x in [3,4,5,7,9,10,13,16,18,19,21,23,24]]
         # bw_size_factors = [2**x for x in [3,4,5,6,7,8,9,10,11,12]]
         ###########################################################
         for node in self.nodes:   
             for mh in self.mem_hierarchies:
                 # generate combinations of stage sizes
-                # if 4 stages with possible sizes [16,32,64] then combinations are:
-                # [16,16,16,16], [16,16,16,32], [16,16,16,64], ..., [16,16,32,16], ..., [64,64,64,64]
                 for pe_array in self.pe_array_factors:
                     # The length subtractions are hardcoded since the PE size information is embedded in the memory hierarchy
-                    for stage_size_array in itertools.combinations_with_replacement(stage_size_factors, len(self.mem_hierarchies[mh])-2):
-                    # for stage_size_array in [[128*8, 16, 131072*8*16]]:
-                        # manually add memory hierarchy information for DRAM
-                        stage_size_array = list(stage_size_array)
-                        stage_size_array.append(10000000000)
-                        for bw_size_array in itertools.combinations_with_replacement(bw_size_factors, len(self.mem_hierarchies[mh])-2):
-                        # for bw_size_array in [[8, 16, 128*16]]:
-                            bw_size_array = list(bw_size_array)
+                    for reg_size_array in itertools.combinations_with_replacement(stage_size_factors[0], self.mem_hierarchies[mh][0][0]):
+                        for sram_size_array in itertools.combinations_with_replacement(stage_size_factors[1], self.mem_hierarchies[mh][0][1]):
                             # manually add memory hierarchy information for DRAM
-                            bw_size_array.append(64)
-                            cfg = [mh, pe_array, stage_size_array, bw_size_array]
-                            # print("\n> Candidate Configuration: " + str(cfg))
-                            # update accelerator, search LUT for mem config
-                            updated_accelerator = self.update_hw(self.mem_hierarchies[mh], stage_size_array, bw_size_array, pe_array, node)
-                            # check if memory config is valid, skip invalid ones
-                            if(updated_accelerator is None):
-                                continue
-                            kwargs = pickle_deepcopy(self.kwargs)
-                            kwargs["accelerator"] = updated_accelerator
-                            sub_stage = self.list_of_callables[0](self.list_of_callables[1:], **kwargs)
-                            # configuration might be invalid
-                            try:
-                                for cme, extra_info in sub_stage.run():
-                                    cme.cfg = cfg
-                                    yield cme, extra_info
-                                    continue
-                            except:
-                                # logger.info("> FAILED")
-                                continue  # in case of error, move on to next configuration
-                            else:
-                                print("\n> Candidate Configuration: " + str(cfg))
-                                print("> SUCCEEDED")
-                                continue
+                            stage_size_array = list(reg_size_array) + list(sram_size_array)
+                            stage_size_array.append(10000000000)
+                            for reg_bw_array in itertools.combinations_with_replacement(bw_size_factors[0], self.mem_hierarchies[mh][0][0]):
+                                for sram_bw_array in itertools.combinations_with_replacement(bw_size_factors[1], self.mem_hierarchies[mh][0][1]):
+                                    bw_size_array = list(reg_bw_array) + list(sram_bw_array)
+                                    # manually add memory hierarchy information for DRAM
+                                    bw_size_array.append(64)
+                                    cfg = [mh, pe_array, stage_size_array, bw_size_array]
+                                    print("\n> Candidate Configuration: " + str(cfg))
+                                    # update accelerator, search LUT for mem config
+                                    updated_accelerator = self.update_hw(self.mem_hierarchies[mh], stage_size_array, bw_size_array, pe_array, node)
+                                    # check if memory config is valid, skip invalid ones
+                                    if(updated_accelerator is None):
+                                        continue
+                                    kwargs = pickle_deepcopy(self.kwargs)
+                                    kwargs["accelerator"] = updated_accelerator
+                                    sub_stage = self.list_of_callables[0](self.list_of_callables[1:], **kwargs)
+                                    # configuration might be invalid
+                                    try:
+                                        for cme, extra_info in sub_stage.run():
+                                            cme.cfg = cfg
+                                            yield cme, extra_info
+                                            continue
+                                    except:
+                                        print("> FAILED")
+                                        continue  # in case of error, move on to next configuration
+                                    else:
+                                        print("> SUCCEEDED")
+                                        continue
 
     def update_hw(self, mh, stage_size_array, bw_size_array, pe_array, node):
         """
@@ -104,7 +101,7 @@ class HWDSEStageLUT_v2(Stage):
         """
         memory_instances = []
         stage_num = 0
-        for stage in mh[0:-1]:
+        for stage in mh[1:-1]:
             cost_lut = self.get_mem_cost_lut(node=node,
                                              size=stage_size_array[stage_num],
                                              bw=bw_size_array[stage_num],
@@ -141,7 +138,7 @@ class HWDSEStageLUT_v2(Stage):
         # memory block
         memory_hierarchy_inst = MemoryHierarchy(operational_array=multiplier_array_inst)
         stage_num = 0
-        for stage in mh[0:-1]:
+        for stage in mh[1:-1]:
             memory_hierarchy_inst.add_memory(memory_instance=memory_instances[stage_num],
                                              operands=stage[1],
                                              port_alloc=stage[2],

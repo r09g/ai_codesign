@@ -4,7 +4,8 @@ import re
 
 # Get the onnx model, the mapping and accelerator arguments
 mem_hierarchies = {'ascend_like': 
-                    [[[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
+                    [[2,5],
+                     [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),{(0, 0, 1, 0), (0, 0, 0, 1)}],
                      [[2,2,0],('O',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': 'w_port_2', 'th': 'r_port_2'},),{(0, 1, 0, 0)}],
                      [[1,1,0],('I2',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
                      [[1,1,0],('I1',),({'fh': 'w_port_1', 'tl': 'r_port_1', 'fl': None, 'th': None},),'all'],
