@@ -27,7 +27,7 @@ _logging.basicConfig(level=_logging_level,
                      format=_logging_format)
 
 args_accelerator = "zigzag.inputs.examples.hardware.TPU_like"
-args_workload = "zigzag/inputs/examples/workload/alexnet.onnx"
+args_workload = "inputs/examples/workload/squeezenet.onnx"
 args_mapping = "zigzag.inputs.examples.mapping.tpu_like"
 
 hw_name = args_accelerator.split(".")[-1]
